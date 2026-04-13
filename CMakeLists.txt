@@ -18,6 +18,7 @@ add_executable(c64-ultimate-toolbox
     # Video
     src/video/ColorPalette.cpp
     src/video/FrameAssembler.cpp
+    src/video/CrtRenderer.cpp
 
     # Audio
     src/audio/AudioPlayer.cpp
@@ -30,6 +31,9 @@ add_executable(c64-ultimate-toolbox
     src/network/C64Connection.cpp
     src/network/DeviceScanner.cpp
     src/network/KeyboardForwarder.cpp
+
+    # Resources
+    resources/shaders.qrc
 )
 
 target_include_directories(c64-ultimate-toolbox PRIVATE src)

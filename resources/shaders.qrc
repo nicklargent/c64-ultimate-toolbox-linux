@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/shaders">
+        <file alias="crt.vert">../src/shaders/crt.vert</file>
+        <file alias="crt.frag">../src/shaders/crt.frag</file>
+        <file alias="blit.vert">../src/shaders/blit.vert</file>
+        <file alias="blit.frag">../src/shaders/blit.frag</file>
+    </qresource>
+</RCC>
