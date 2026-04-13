@@ -41,6 +41,9 @@ add_executable(c64-ultimate-toolbox
     src/ui/FileManagerWidget.cpp
     src/ui/SystemPanel.cpp
     src/ui/DisplayAudioPanel.cpp
+    src/ui/MemoryBrowserWidget.cpp
+    src/ui/DebugMonitorWidget.cpp
+    src/ui/DebugPanel.cpp
 
     # Resources
     resources/shaders.qrc

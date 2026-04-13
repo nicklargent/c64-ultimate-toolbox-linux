@@ -3,6 +3,7 @@
 #include "ui/FileManagerWidget.h"
 #include "ui/SystemPanel.h"
 #include "ui/DisplayAudioPanel.h"
+#include "ui/DebugPanel.h"
 #include "video/CrtRenderer.h"
 #include "network/C64Connection.h"
 #include "network/KeyboardForwarder.h"
@@ -42,8 +43,8 @@ MainWindow::MainWindow(C64Connection *connection, QWidget *parent)
     m_videoWidget = new VideoWidget(connection, this);
     m_centerSplitter->addWidget(m_videoWidget);
 
-    // Debug panel placeholder (will be replaced in Phase 10)
-    m_debugPlaceholder = new QWidget(this);
+    // Debug panel: Memory Browser + Monitor
+    m_debugPlaceholder = new DebugPanel(connection, this);
     m_debugPlaceholder->setMinimumHeight(200);
     m_centerSplitter->addWidget(m_debugPlaceholder);
     m_debugPlaceholder->hide();
