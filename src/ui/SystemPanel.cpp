@@ -172,10 +172,33 @@ void SystemPanel::refreshDriveStatus()
         return;
 
     connect(api, &C64ApiClient::drivesReceived, this, [this](const QJsonArray &drives) {
-        // The API returns a JSON object, not array — handled via configReceived
-        // For now just mark as loaded
-        m_driveALabel->setText("Connected");
-        m_driveBLabel->setText("Connected");
+        // API returns: [ {"a": {enabled, type, image_file, ...}}, {"b": {...}}, ... ]
+        auto updateLabel = [](QLabel *label, const QJsonObject &info) {
+            bool enabled = info["enabled"].toBool();
+            QString imageFile = info["image_file"].toString();
+            QString type = info["type"].toString();
+
+            if (!enabled) {
+                label->setText("Disabled");
+                label->setStyleSheet("color: gray;");
+            } else if (imageFile.isEmpty()) {
+                label->setText(QStringLiteral("[%1] Empty").arg(type));
+                label->setStyleSheet("color: gray;");
+            } else {
+                // Show just the filename
+                QString name = imageFile.section('/', -1);
+                label->setText(QStringLiteral("[%1] %2").arg(type, name));
+                label->setStyleSheet("");
+            }
+        };
+
+        for (const auto &driveVal : drives) {
+            QJsonObject driveObj = driveVal.toObject();
+            if (driveObj.contains("a"))
+                updateLabel(m_driveALabel, driveObj["a"].toObject());
+            else if (driveObj.contains("b"))
+                updateLabel(m_driveBLabel, driveObj["b"].toObject());
+        }
     }, Qt::SingleShotConnection);
 
     api->fetchDrives();

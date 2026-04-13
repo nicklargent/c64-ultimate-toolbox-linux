@@ -34,11 +34,14 @@ void C64ApiClient::addAuth(QNetworkRequest &request)
 
 QString C64ApiClient::encodeQueryValue(const QString &value)
 {
-    return QString::fromUtf8(QUrl::toPercentEncoding(value, QByteArray(), "/:&=+"));
+    // Encode everything including /:&=+ which are normally allowed in query strings
+    // but break the device's query parameter parsing
+    return QString::fromUtf8(QUrl::toPercentEncoding(value));
 }
 
 QString C64ApiClient::encodePathComponent(const QString &value)
 {
+    // Allow / in paths but encode everything else (including spaces)
     return QString::fromUtf8(QUrl::toPercentEncoding(value, "/"));
 }
 

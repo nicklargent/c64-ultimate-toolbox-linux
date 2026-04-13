@@ -90,6 +90,7 @@ void AudioPlayer::applyVolumeBalance(QByteArray &data)
 
     auto *samples = reinterpret_cast<int16_t *>(data.data());
     int sampleCount = data.size() / 2;
+    sampleCount &= ~1; // ensure even (stereo pairs)
 
     for (int i = 0; i < sampleCount; i += 2) {
         samples[i]     = static_cast<int16_t>(std::clamp(samples[i] * leftAmp, -32768.0f, 32767.0f));

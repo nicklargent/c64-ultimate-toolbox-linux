@@ -264,7 +264,7 @@ void C64Connection::waitForDeviceAndRestartStreams()
         auto attempts = std::make_shared<int>(0);
 
         connect(pollTimer, &QTimer::timeout, this, [this, pollTimer, attempts]() {
-            if (!m_connected || !m_isWaitingForReboot || *attempts >= 30) {
+            if (!m_connected || !m_isWaitingForReboot || !m_apiClient || *attempts >= 30) {
                 pollTimer->stop();
                 pollTimer->deleteLater();
                 m_isWaitingForReboot = false;
