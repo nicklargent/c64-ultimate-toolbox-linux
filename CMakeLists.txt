@@ -11,6 +11,25 @@ qt_standard_project_setup()
 add_executable(c64-ultimate-toolbox
     src/main.cpp
     src/app/Application.cpp
+
+    # Models
+    src/models/ConnectionMode.cpp
+
+    # Video
+    src/video/ColorPalette.cpp
+    src/video/FrameAssembler.cpp
+
+    # Audio
+    src/audio/AudioPlayer.cpp
+
+    # Network
+    src/network/C64ApiClient.cpp
+    src/network/FtpClient.cpp
+    src/network/UdpVideoReceiver.cpp
+    src/network/UdpAudioReceiver.cpp
+    src/network/C64Connection.cpp
+    src/network/DeviceScanner.cpp
+    src/network/KeyboardForwarder.cpp
 )
 
 target_include_directories(c64-ultimate-toolbox PRIVATE src)
