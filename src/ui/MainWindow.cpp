@@ -1,5 +1,6 @@
 #include "ui/MainWindow.h"
 #include "ui/VideoWidget.h"
+#include "ui/FileManagerWidget.h"
 #include "video/CrtRenderer.h"
 #include "network/C64Connection.h"
 #include "network/KeyboardForwarder.h"
@@ -28,8 +29,8 @@ MainWindow::MainWindow(C64Connection *connection, QWidget *parent)
     // Build the 3-column splitter layout
     m_mainSplitter = new QSplitter(Qt::Horizontal, this);
 
-    // Sidebar placeholder (will be replaced with FileManagerWidget in Phase 7)
-    m_sidebarPlaceholder = new QWidget(this);
+    // Sidebar: File Manager
+    m_sidebarPlaceholder = new FileManagerWidget(connection, this);
     m_sidebarPlaceholder->setMinimumWidth(300);
     m_sidebarPlaceholder->setMaximumWidth(500);
 
