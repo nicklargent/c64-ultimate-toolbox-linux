@@ -39,6 +39,8 @@ add_executable(c64-ultimate-toolbox
     src/ui/KeyStripWidget.cpp
     src/ui/ConnectDialog.cpp
     src/ui/FileManagerWidget.cpp
+    src/ui/SystemPanel.cpp
+    src/ui/DisplayAudioPanel.cpp
 
     # Resources
     resources/shaders.qrc

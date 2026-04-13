@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QSettings>
 #include <QLabel>
+#include <QTabWidget>
 
 #include "models/ConnectionMode.h"
 

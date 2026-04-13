@@ -1,6 +1,8 @@
 #include "ui/MainWindow.h"
 #include "ui/VideoWidget.h"
 #include "ui/FileManagerWidget.h"
+#include "ui/SystemPanel.h"
+#include "ui/DisplayAudioPanel.h"
 #include "video/CrtRenderer.h"
 #include "network/C64Connection.h"
 #include "network/KeyboardForwarder.h"
@@ -49,10 +51,13 @@ MainWindow::MainWindow(C64Connection *connection, QWidget *parent)
     m_centerSplitter->setStretchFactor(0, 1); // Video stretches
     m_centerSplitter->setStretchFactor(1, 0); // Debug fixed
 
-    // Inspector placeholder (will be replaced in Phase 8/9)
-    m_inspectorPlaceholder = new QWidget(this);
-    m_inspectorPlaceholder->setMinimumWidth(350);
-    m_inspectorPlaceholder->setMaximumWidth(700);
+    // Inspector: tabbed System + Display/Audio panels
+    auto *inspectorTabs = new QTabWidget(this);
+    inspectorTabs->addTab(new SystemPanel(connection, this), "Device Info");
+    inspectorTabs->addTab(new DisplayAudioPanel(connection, m_videoWidget->renderer(), this), "App Settings");
+    inspectorTabs->setMinimumWidth(350);
+    inspectorTabs->setMaximumWidth(700);
+    m_inspectorPlaceholder = inspectorTabs;
 
     m_mainSplitter->addWidget(m_sidebarPlaceholder);
     m_mainSplitter->addWidget(m_centerSplitter);
