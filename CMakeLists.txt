@@ -50,6 +50,12 @@ add_executable(c64-ultimate-toolbox
     # Models
     src/models/BasicTokenizer.cpp
 
+    # Recording
+    src/recording/MediaCapture.cpp
+
+    # Settings
+    src/settings/PresetManager.cpp
+
     # Resources
     resources/shaders.qrc
 )
