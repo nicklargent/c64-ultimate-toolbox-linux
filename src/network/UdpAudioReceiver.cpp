@@ -19,7 +19,7 @@ void UdpAudioReceiver::start(uint16_t port)
     stop();
 
     m_socket = new QUdpSocket(this);
-    if (!m_socket->bind(QHostAddress::Any, port, QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint)) {
+    if (!m_socket->bind(QHostAddress::AnyIPv4, port, QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint)) {
         qCWarning(logAudio) << "Failed to bind audio UDP port" << port << m_socket->errorString();
         delete m_socket;
         m_socket = nullptr;

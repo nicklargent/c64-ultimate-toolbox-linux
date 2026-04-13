@@ -187,6 +187,19 @@ void C64Connection::startStreams()
         return;
     }
 
+    // Connect error handler to report stream start failures
+    auto errConn = std::make_shared<QMetaObject::Connection>();
+    *errConn = connect(m_apiClient, &C64ApiClient::requestFailed, this,
+        [this, errConn](const QString &op, const QString &error) {
+            if (op != "startStream") return;
+            QObject::disconnect(*errConn);
+
+            qCWarning(logNetwork) << "Stream start failed:" << error;
+            emit connectionError(
+                "Unable to start streams. Make sure Data Streams are enabled "
+                "in your Ultimate device settings and that Ethernet is connected.");
+        });
+
     m_apiClient->startStream("video", localIp, m_videoPort);
     m_apiClient->startStream("audio", localIp, m_audioPort);
     m_streamsActive = true;

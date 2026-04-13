@@ -321,14 +321,15 @@ void ConnectDialog::attemptConnection(const QString &ip, const QString &password
 
     *connOk = connect(m_connection, &C64Connection::connectionChanged, this,
         [this, connOk, connErr]() {
+            if (!m_connection->isConnected())
+                return; // Ignore the disconnect() call inside connectToolbox()
+
             QObject::disconnect(*connOk);
             QObject::disconnect(*connErr);
 
-            if (m_connection->isConnected()) {
-                stopScanning();
-                emit connectedToolbox();
-                accept();
-            }
+            stopScanning();
+            emit connectedToolbox();
+            accept();
         });
 
     *connErr = connect(m_connection, &C64Connection::connectionError, this,

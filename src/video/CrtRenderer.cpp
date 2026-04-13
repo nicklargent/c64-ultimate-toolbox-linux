@@ -47,6 +47,7 @@ void CrtRenderer::updateFrame(const QByteArray &rgbaData, int width, int height)
     m_pendingWidth = width;
     m_pendingHeight = height;
     m_hasPendingFrame = true;
+
     update(); // Schedule repaint
 }
 
