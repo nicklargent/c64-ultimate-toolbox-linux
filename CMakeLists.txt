@@ -1,0 +1,24 @@
+cmake_minimum_required(VERSION 3.22)
+project(c64-ultimate-toolbox LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network Multimedia OpenGL OpenGLWidgets)
+qt_standard_project_setup()
+
+add_executable(c64-ultimate-toolbox
+    src/main.cpp
+    src/app/Application.cpp
+)
+
+target_include_directories(c64-ultimate-toolbox PRIVATE src)
+
+target_link_libraries(c64-ultimate-toolbox PRIVATE
+    Qt6::Widgets
+    Qt6::Network
+    Qt6::Multimedia
+    Qt6::OpenGL
+    Qt6::OpenGLWidgets
+)
