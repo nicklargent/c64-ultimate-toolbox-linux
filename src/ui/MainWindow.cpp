@@ -4,6 +4,7 @@
 #include "ui/SystemPanel.h"
 #include "ui/DisplayAudioPanel.h"
 #include "ui/DebugPanel.h"
+#include "ui/BasicEditorWindow.h"
 #include "video/CrtRenderer.h"
 #include "network/C64Connection.h"
 #include "network/KeyboardForwarder.h"
@@ -142,6 +143,11 @@ void MainWindow::buildToolbar()
 
     m_actNewScratchpad = m_toolbar->addAction("BASIC");
     m_actNewScratchpad->setToolTip("New BASIC Scratchpad");
+    connect(m_actNewScratchpad, &QAction::triggered, this, [this]() {
+        auto *editor = new BasicEditorWindow(m_connection);
+        editor->setAttribute(Qt::WA_DeleteOnClose);
+        editor->show();
+    });
 
     m_actRunFile = m_toolbar->addAction("Run File");
     m_actRunFile->setToolTip("Run File on Device");

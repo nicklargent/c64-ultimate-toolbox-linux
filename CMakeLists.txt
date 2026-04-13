@@ -44,6 +44,11 @@ add_executable(c64-ultimate-toolbox
     src/ui/MemoryBrowserWidget.cpp
     src/ui/DebugMonitorWidget.cpp
     src/ui/DebugPanel.cpp
+    src/ui/BasicEditorWidget.cpp
+    src/ui/BasicEditorWindow.cpp
+
+    # Models
+    src/models/BasicTokenizer.cpp
 
     # Resources
     resources/shaders.qrc
