@@ -1,16 +1,14 @@
 #include "app/Application.h"
-
-#include <QMainWindow>
+#include "ui/MainWindow.h"
+#include "network/C64Connection.h"
 
 int main(int argc, char *argv[])
 {
     Application app(argc, argv);
 
-    QMainWindow window;
-    window.setWindowTitle("C64 Ultimate Toolbox");
-    window.setMinimumSize(700, 450);
-    window.resize(1200, 750);
-    window.show();
+    auto *connection = new C64Connection(&app);
+    auto *window = new MainWindow(connection);
+    window->show();
 
     return app.exec();
 }

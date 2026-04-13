@@ -32,6 +32,12 @@ add_executable(c64-ultimate-toolbox
     src/network/DeviceScanner.cpp
     src/network/KeyboardForwarder.cpp
 
+    # UI
+    src/ui/MainWindow.cpp
+    src/ui/VideoWidget.cpp
+    src/ui/StatusBarWidget.cpp
+    src/ui/KeyStripWidget.cpp
+
     # Resources
     resources/shaders.qrc
 )
