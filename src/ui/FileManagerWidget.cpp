@@ -30,7 +30,7 @@ FileManagerWidget::FileManagerWidget(C64Connection *connection, QWidget *parent)
 
     // Tree view
     m_model = new QStandardItemModel(this);
-    m_model->setHorizontalHeaderLabels({"Name", "Size"});
+    m_model->setColumnCount(1);
 
     m_tree = new QTreeView(this);
     m_tree->setModel(m_model);
@@ -41,6 +41,8 @@ FileManagerWidget::FileManagerWidget(C64Connection *connection, QWidget *parent)
     m_tree->setAcceptDrops(true);
     m_tree->setAnimated(true);
     m_tree->setIndentation(16);
+    m_tree->header()->setStretchLastSection(false);
+    m_tree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
 
     connect(m_tree, &QTreeView::expanded, this, &FileManagerWidget::onItemExpanded);
     connect(m_tree, &QTreeView::doubleClicked, this, &FileManagerWidget::onItemDoubleClicked);
