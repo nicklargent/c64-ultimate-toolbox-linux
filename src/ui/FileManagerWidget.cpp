@@ -73,7 +73,7 @@ FileManagerWidget::FileManagerWidget(C64Connection *connection, QWidget *parent)
     layout->addWidget(statusBar);
 
     // Add root node
-    auto *rootItem = new QStandardItem("C64");
+    auto *rootItem = new QStandardItem(QIcon::fromTheme("computer"), "C64");
     rootItem->setData("/", PathRole);
     rootItem->setData(true, IsDirRole);
     rootItem->setData(false, LoadedRole);
@@ -142,7 +142,24 @@ void FileManagerWidget::onDirectoryListed(const QString &path, const QList<FtpFi
     parentItem->removeRows(0, parentItem->rowCount());
 
     for (const auto &entry : entries) {
-        auto *item = new QStandardItem(entry.name);
+        QIcon icon;
+        if (entry.isDirectory) {
+            icon = QIcon::fromTheme("folder");
+        } else {
+            QString ext = entry.name.section('.', -1).toLower();
+            if (ext == "prg" || ext == "crt")
+                icon = QIcon::fromTheme("application-x-executable");
+            else if (ext == "sid" || ext == "mod")
+                icon = QIcon::fromTheme("audio-x-generic");
+            else if (ext == "d64" || ext == "d71" || ext == "d81" || ext == "g64" || ext == "dnp")
+                icon = QIcon::fromTheme("media-floppy");
+            else if (ext == "txt" || ext == "nfo" || ext == "doc")
+                icon = QIcon::fromTheme("text-x-generic");
+            else
+                icon = QIcon::fromTheme("text-x-generic-template");
+        }
+
+        auto *item = new QStandardItem(icon, entry.name);
         item->setData(entry.path, PathRole);
         item->setData(entry.isDirectory, IsDirRole);
         item->setData(static_cast<qulonglong>(entry.size), SizeRole);

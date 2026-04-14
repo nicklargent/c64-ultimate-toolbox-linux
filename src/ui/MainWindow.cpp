@@ -132,35 +132,35 @@ void MainWindow::buildToolbar()
 {
     m_toolbar = addToolBar("Main");
     m_toolbar->setMovable(false);
-    m_toolbar->setIconSize(QSize(20, 20));
-    m_toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    m_toolbar->setIconSize(QSize(22, 22));
+    m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
-    m_actSidebar = m_toolbar->addAction("Sidebar");
+    m_actSidebar = m_toolbar->addAction(QIcon::fromTheme("view-left-close"), "Files");
     m_actSidebar->setCheckable(true);
     m_actSidebar->setToolTip("Toggle Sidebar");
     connect(m_actSidebar, &QAction::triggered, this, &MainWindow::onToggleSidebar);
 
     m_toolbar->addSeparator();
 
-    m_actPauseResume = m_toolbar->addAction("Pause");
+    m_actPauseResume = m_toolbar->addAction(QIcon::fromTheme("media-playback-pause"), "Pause");
     m_actPauseResume->setToolTip("Pause/Resume");
     connect(m_actPauseResume, &QAction::triggered, this, &MainWindow::onPauseResume);
 
-    m_actReset = m_toolbar->addAction("Reset");
+    m_actReset = m_toolbar->addAction(QIcon::fromTheme("view-refresh"), "Reset");
     m_actReset->setToolTip("Reset Machine");
     connect(m_actReset, &QAction::triggered, this, &MainWindow::onResetMachine);
 
-    m_actReboot = m_toolbar->addAction("Reboot");
+    m_actReboot = m_toolbar->addAction(QIcon::fromTheme("system-reboot"), "Reboot");
     m_actReboot->setToolTip("Reboot Device");
     connect(m_actReboot, &QAction::triggered, this, &MainWindow::onRebootMachine);
 
-    m_actPowerOff = m_toolbar->addAction("Power Off");
+    m_actPowerOff = m_toolbar->addAction(QIcon::fromTheme("system-shutdown"), "Power Off");
     m_actPowerOff->setToolTip("Power Off Device");
     connect(m_actPowerOff, &QAction::triggered, this, &MainWindow::onPowerOff);
 
     m_toolbar->addSeparator();
 
-    m_actNewScratchpad = m_toolbar->addAction("BASIC");
+    m_actNewScratchpad = m_toolbar->addAction(QIcon::fromTheme("text-editor"), "BASIC");
     m_actNewScratchpad->setToolTip("New BASIC Scratchpad");
     connect(m_actNewScratchpad, &QAction::triggered, this, [this]() {
         auto *editor = new BasicEditorWindow(m_connection);
@@ -168,30 +168,30 @@ void MainWindow::buildToolbar()
         editor->show();
     });
 
-    m_actRunFile = m_toolbar->addAction("Run File");
+    m_actRunFile = m_toolbar->addAction(QIcon::fromTheme("media-playback-start"), "Run File");
     m_actRunFile->setToolTip("Run File on Device");
     connect(m_actRunFile, &QAction::triggered, this, &MainWindow::onRunFile);
 
     m_toolbar->addSeparator();
 
-    m_actKeyboard = m_toolbar->addAction("Keyboard");
+    m_actKeyboard = m_toolbar->addAction(QIcon::fromTheme("input-keyboard"), "Keyboard");
     m_actKeyboard->setCheckable(true);
     m_actKeyboard->setToolTip("Send Keyboard Input");
     connect(m_actKeyboard, &QAction::triggered, this, &MainWindow::onToggleKeyboard);
 
     m_toolbar->addSeparator();
 
-    m_actScreenshot = m_toolbar->addAction("Screenshot");
+    m_actScreenshot = m_toolbar->addAction(QIcon::fromTheme("camera-photo"), "Screenshot");
     m_actScreenshot->setToolTip("Take Screenshot");
     connect(m_actScreenshot, &QAction::triggered, this, &MainWindow::onScreenshot);
 
-    m_actRecord = m_toolbar->addAction("Record");
+    m_actRecord = m_toolbar->addAction(QIcon::fromTheme("media-record"), "Record");
     m_actRecord->setCheckable(true);
     m_actRecord->setToolTip("Toggle Recording");
 
     m_toolbar->addSeparator();
 
-    m_actDebugPanel = m_toolbar->addAction("Debug");
+    m_actDebugPanel = m_toolbar->addAction(QIcon::fromTheme("utilities-terminal"), "Debug");
     m_actDebugPanel->setCheckable(true);
     m_actDebugPanel->setToolTip("Toggle Debug Panel");
     connect(m_actDebugPanel, &QAction::triggered, this, &MainWindow::onToggleDebugPanel);
@@ -200,7 +200,7 @@ void MainWindow::buildToolbar()
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_toolbar->addWidget(spacer);
 
-    m_actInspector = m_toolbar->addAction("Inspector");
+    m_actInspector = m_toolbar->addAction(QIcon::fromTheme("preferences-system"), "Inspector");
     m_actInspector->setCheckable(true);
     m_actInspector->setToolTip("Toggle Inspector Panel");
     connect(m_actInspector, &QAction::triggered, this, &MainWindow::onToggleInspector);
