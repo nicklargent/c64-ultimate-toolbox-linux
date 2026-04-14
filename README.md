@@ -79,7 +79,3 @@ The CRT shader is a direct GLSL port of the original Metal shader, implementing 
 - [Original macOS app](https://github.com/amiantos/c64-ultimate-toolbox/)
 - [Quick Start Guide](https://discuss.bradroot.me/t/c64-ultimate-toolbox-quick-start-guide/80)
 - [C64 Ultimate](https://www.commodore.net)
-
-## License
-
-[Mozilla Public License 2.0](LICENSE)
