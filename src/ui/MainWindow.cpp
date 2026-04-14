@@ -185,10 +185,6 @@ void MainWindow::buildToolbar()
     m_actScreenshot->setToolTip("Take Screenshot");
     connect(m_actScreenshot, &QAction::triggered, this, &MainWindow::onScreenshot);
 
-    m_actRecord = m_toolbar->addAction(QIcon::fromTheme("media-record"), "Record");
-    m_actRecord->setCheckable(true);
-    m_actRecord->setToolTip("Toggle Recording");
-
     m_toolbar->addSeparator();
 
     m_actDebugPanel = m_toolbar->addAction(QIcon::fromTheme("utilities-terminal"), "Debug");
