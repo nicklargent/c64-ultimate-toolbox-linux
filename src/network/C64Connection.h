@@ -13,6 +13,7 @@ class UdpAudioReceiver;
 class FrameAssembler;
 class AudioPlayer;
 class KeyboardForwarder;
+class CliServer;
 
 class C64Connection : public QObject {
     Q_OBJECT
@@ -107,6 +108,9 @@ private:
     QTimer *m_fpsTimer = nullptr;
     int m_frameCount = 0;
     int m_fps = 0;
+
+    // CLI server
+    CliServer *m_cliServer = nullptr;
 
     // Sleep inhibit
     uint32_t m_sleepCookie = 0;

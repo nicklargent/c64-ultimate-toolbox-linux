@@ -1,0 +1,81 @@
+#!/bin/bash
+# c64ctl — CLI interface to the C64 Ultimate Toolbox
+# Requires the toolbox app to be running and connected.
+
+PORT=$(cat /tmp/c64ctl.port 2>/dev/null)
+if [ -z "$PORT" ]; then
+    echo "Error: C64 Toolbox not running or not connected" >&2
+    exit 1
+fi
+
+BASE="http://localhost:$PORT"
+
+case "${1:-help}" in
+    screen)
+        curl -s "$BASE/screen"
+        ;;
+    screen/raw)
+        curl -s "$BASE/screen/raw"
+        ;;
+    type)
+        shift
+        curl -s -X POST -d "$*" "$BASE/type"
+        ;;
+    enter)
+        shift
+        curl -s -X POST -d "$*" "$BASE/type"
+        ;;
+    basic)
+        if [ -z "$2" ]; then
+            echo "Usage: c64ctl basic <file.bas>" >&2
+            exit 1
+        fi
+        curl -s -X POST --data-binary @"$2" "$BASE/basic"
+        ;;
+    peek)
+        addr="${2:-0400}"
+        len="${3:-256}"
+        curl -s "$BASE/peek?addr=$addr&len=$len"
+        ;;
+    poke)
+        if [ -z "$2" ] || [ -z "$3" ]; then
+            echo "Usage: c64ctl poke <addr> <hex_bytes>" >&2
+            exit 1
+        fi
+        curl -s -X POST -d "$3" "$BASE/poke?addr=$2"
+        ;;
+    reset)
+        curl -s -X POST "$BASE/reset"
+        ;;
+    info)
+        curl -s "$BASE/info"
+        ;;
+    help|--help|-h)
+        cat <<'USAGE'
+c64ctl — Control your C64 Ultimate from the terminal
+
+Commands:
+  screen          Read the C64 screen as text (40x25)
+  screen/raw      Read screen RAM as hex dump
+  enter <text>    Type text and press RETURN
+  type <text>     Type text and press RETURN
+  basic <file>    Upload and run a BASIC program (.bas file)
+  peek <addr> [n] Read n bytes from hex address (default: 256)
+  poke <addr> <h> Write hex bytes to address
+  reset           Reset the C64
+  info            Show device info
+
+Examples:
+  c64ctl screen
+  c64ctl enter "10 PRINT CHR$(205.5+RND(1));:GOTO 10"
+  c64ctl enter "RUN"
+  c64ctl basic maze.bas
+  c64ctl peek D000 32
+  c64ctl reset
+USAGE
+        ;;
+    *)
+        echo "Unknown command: $1 (try: c64ctl help)" >&2
+        exit 1
+        ;;
+esac

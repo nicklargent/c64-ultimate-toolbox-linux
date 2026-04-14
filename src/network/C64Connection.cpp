@@ -4,6 +4,7 @@
 #include "network/UdpVideoReceiver.h"
 #include "network/UdpAudioReceiver.h"
 #include "network/KeyboardForwarder.h"
+#include "network/CliServer.h"
 #include "video/FrameAssembler.h"
 #include "audio/AudioPlayer.h"
 #include "app/Log.h"
@@ -87,6 +88,12 @@ void C64Connection::startListening(uint16_t videoPort, uint16_t audioPort)
 
 void C64Connection::disconnect()
 {
+    if (m_cliServer) {
+        m_cliServer->stop();
+        delete m_cliServer;
+        m_cliServer = nullptr;
+    }
+
     stopReceivers();
     m_audioPlayer->stop();
     m_fpsTimer->stop();
@@ -140,6 +147,10 @@ void C64Connection::onDeviceInfoReceived(const DeviceInfo &info)
 
         m_recentConnections->addToolbox(m_pendingIp, m_pendingPassword, m_pendingSavePassword);
         emit connectionChanged();
+
+        // Start CLI server for c64ctl
+        m_cliServer = new CliServer(this, this);
+        m_cliServer->start();
 
         qCInfo(logApp) << "Connected to" << info.product << "at" << m_pendingIp;
     } else if (m_isWaitingForReboot) {
