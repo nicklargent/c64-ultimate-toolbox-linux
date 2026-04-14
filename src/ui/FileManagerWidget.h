@@ -44,8 +44,10 @@ private slots:
     void playSid();
     void playMod();
     void runCrt();
+    void runDisk();
     void mountDriveA();
     void mountDriveB();
+    void viewTextFile();
 
     // Disk image creation
     void createD64();

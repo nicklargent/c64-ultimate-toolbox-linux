@@ -14,6 +14,10 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QKeyEvent>
+#include <QPlainTextEdit>
+#include <QMainWindow>
+#include <QTimer>
+#include <QDir>
 
 FileManagerWidget::FileManagerWidget(C64Connection *connection, QWidget *parent)
     : QWidget(parent)
@@ -216,12 +220,15 @@ void FileManagerWidget::onItemDoubleClicked(const QModelIndex &index)
     QString path = item->data(PathRole).toString();
     QString ext = name.section('.', -1).toLower();
 
+    QStringList diskExts = {"d64", "d71", "d81", "g64", "g71"};
+    QStringList textExts = {"txt", "nfo", "diz", "me", "doc", "readme", "1st"};
+
     if (ext == "prg") runFileByPath("prg", path, name);
     else if (ext == "sid") runFileByPath("sid", path, name);
     else if (ext == "mod") runFileByPath("mod", path, name);
     else if (ext == "crt") runFileByPath("crt", path, name);
-    else if (ext == "d64" || ext == "d71" || ext == "d81" || ext == "g64" || ext == "g71")
-        mountDriveA();
+    else if (diskExts.contains(ext)) runDisk();
+    else if (textExts.contains(ext) || name.toLower().startsWith("readme")) viewTextFile();
 }
 
 void FileManagerWidget::onCustomContextMenu(const QPoint &pos)
@@ -233,9 +240,14 @@ void FileManagerWidget::onCustomContextMenu(const QPoint &pos)
 
     if (isFile) {
         QString ext = item->text().section('.', -1).toLower();
+        QString nameLower = item->text().toLower();
         QStringList diskExts = {"d64", "d71", "d81", "g64", "g71"};
+        QStringList textExts = {"txt", "nfo", "diz", "me", "doc", "readme", "1st"};
 
-        if (ext == "prg") {
+        if (textExts.contains(ext) || nameLower.startsWith("readme")) {
+            menu.addAction(QIcon::fromTheme("document-open"), "View", this, &FileManagerWidget::viewTextFile);
+            menu.addSeparator();
+        } else if (ext == "prg") {
             menu.addAction("Run", this, &FileManagerWidget::runPrg);
             menu.addAction("Load", this, &FileManagerWidget::loadPrg);
             menu.addSeparator();
@@ -249,6 +261,7 @@ void FileManagerWidget::onCustomContextMenu(const QPoint &pos)
             menu.addAction("Run", this, &FileManagerWidget::runCrt);
             menu.addSeparator();
         } else if (diskExts.contains(ext)) {
+            menu.addAction("Run Disk", this, &FileManagerWidget::runDisk);
             menu.addAction("Mount on Drive A", this, &FileManagerWidget::mountDriveA);
             menu.addAction("Mount on Drive B", this, &FileManagerWidget::mountDriveB);
             menu.addSeparator();
@@ -503,6 +516,112 @@ void FileManagerWidget::runCrt()
 {
     auto *item = selectedItem();
     if (item) runFileByPath("crt", item->data(PathRole).toString(), item->text());
+}
+
+void FileManagerWidget::runDisk()
+{
+    auto *item = selectedItem();
+    if (!item || !m_connection->apiClient()) return;
+
+    QString name = item->text();
+    QString path = item->data(PathRole).toString();
+
+    m_statusLabel->setText("Mounting and running " + name + "...");
+
+    // Step 1: Mount on Drive A
+    m_connection->apiClient()->mountDrive("a", path);
+
+    // Step 2: Inject LOAD"*",8 + RETURN into keyboard buffer
+    // PETSCII: L=4C O=4F A=41 D=44 "=22 *=2A "=22 ,=2C 8=38 RETURN=0D
+    QByteArray loadBytes;
+    loadBytes.append('\x4C'); // L
+    loadBytes.append('\x4F'); // O
+    loadBytes.append('\x41'); // A
+    loadBytes.append('\x44'); // D
+    loadBytes.append('\x22'); // "
+    loadBytes.append('\x2A'); // *
+    loadBytes.append('\x22'); // "
+    loadBytes.append('\x2C'); // ,
+    loadBytes.append('\x38'); // 8
+    loadBytes.append('\x0D'); // RETURN
+
+    // Write LOAD command to keyboard buffer and set counter
+    QTimer::singleShot(500, this, [this, loadBytes, name]() {
+        m_connection->apiClient()->writeMemory(0x0277, loadBytes);
+        QByteArray counter;
+        counter.append(static_cast<char>(loadBytes.size()));
+        m_connection->apiClient()->writeMemory(0x00C6, counter);
+
+        // Step 3: After 3 seconds, inject RUN + RETURN
+        QTimer::singleShot(3000, this, [this, name]() {
+            if (!m_connection->apiClient()) return;
+
+            QByteArray runBytes;
+            runBytes.append('\x52'); // R
+            runBytes.append('\x55'); // U
+            runBytes.append('\x4E'); // N
+            runBytes.append('\x0D'); // RETURN
+
+            m_connection->apiClient()->writeMemory(0x0277, runBytes);
+            QByteArray counter;
+            counter.append(static_cast<char>(runBytes.size()));
+            m_connection->apiClient()->writeMemory(0x00C6, counter);
+
+            m_statusLabel->setText("Loading " + name);
+        });
+    });
+}
+
+void FileManagerWidget::viewTextFile()
+{
+    auto *item = selectedItem();
+    if (!item || !m_ftpClient) return;
+
+    QString name = item->text();
+    QString remotePath = item->data(PathRole).toString();
+    QString tempPath = QDir::tempPath() + "/" + name;
+
+    m_statusLabel->setText("Downloading " + name + "...");
+
+    // Download to temp file, then open viewer on completion
+    auto conn = std::make_shared<QMetaObject::Connection>();
+    *conn = connect(m_ftpClient, &FtpClient::operationCompleted, this,
+        [this, conn, name, tempPath](const QString &op) {
+            if (op != "downloadFile") return;
+            QObject::disconnect(*conn);
+
+            QFile file(tempPath);
+            if (!file.open(QIODevice::ReadOnly)) {
+                m_statusLabel->setText("Cannot read downloaded file");
+                return;
+            }
+
+            QByteArray raw = file.readAll();
+            file.close();
+            QFile::remove(tempPath);
+
+            // Try UTF-8 first, then Latin-1
+            QString content = QString::fromUtf8(raw);
+            if (content.contains(QChar::ReplacementCharacter))
+                content = QString::fromLatin1(raw);
+
+            // Open viewer window
+            auto *viewer = new QMainWindow(this);
+            viewer->setAttribute(Qt::WA_DeleteOnClose);
+            viewer->setWindowTitle(name);
+            viewer->resize(600, 500);
+
+            auto *textEdit = new QPlainTextEdit(viewer);
+            textEdit->setReadOnly(true);
+            textEdit->setFont(QFont("monospace", 12));
+            textEdit->setPlainText(content);
+            viewer->setCentralWidget(textEdit);
+            viewer->show();
+
+            m_statusLabel->setText("Viewing " + name);
+        });
+
+    m_ftpClient->downloadFile(remotePath, tempPath);
 }
 
 void FileManagerWidget::mountDriveA()
