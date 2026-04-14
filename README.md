@@ -2,7 +2,7 @@
 
 A native Linux companion app for your [Commodore 64 Ultimate](https://www.commodore.net) device — browse and manage files, write BASIC programs, view a live CRT display, and control your device from your Linux desktop.
 
-This is a port of [C64 Ultimate Toolbox](https://github.com/mist64/c64-ultimate-toolbox) (originally a macOS/Swift/Metal app) to Linux using Qt 6 and C++20 with OpenGL.
+This is a port of [C64 Ultimate Toolbox](https://github.com/amiantos/c64-ultimate-toolbox) (originally a macOS/Swift/Metal app) to Linux using Qt 6 and C++20 with OpenGL.
 
 ## Features
 
