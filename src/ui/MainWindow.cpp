@@ -17,6 +17,11 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <QStatusBar>
+#include <QLineEdit>
+#include <QPlainTextEdit>
+#include <QTextEdit>
+#include <QSpinBox>
+#include <QComboBox>
 #include <QVBoxLayout>
 
 MainWindow::MainWindow(C64Connection *connection, QWidget *parent)
@@ -111,6 +116,16 @@ void MainWindow::setMode(ConnectionMode mode)
 
     // Sidebar hidden in viewer mode
     m_sidebarPlaceholder->setVisible(mode == ConnectionMode::Toolbox);
+
+    // Default keyboard forwarding ON in Toolbox mode
+    if (mode == ConnectionMode::Toolbox) {
+        auto *fwd = m_connection->keyboardForwarder();
+        if (fwd) {
+            fwd->setEnabled(true);
+            m_actKeyboard->setChecked(true);
+            m_videoWidget->setKeyboardStripVisible(true);
+        }
+    }
 }
 
 void MainWindow::buildToolbar()
@@ -231,24 +246,43 @@ void MainWindow::closeEvent(QCloseEvent *event)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress) {
-        auto *ke = static_cast<QKeyEvent *>(event);
-
-        // If keyboard forwarding is enabled, inject into C64 keyboard buffer
         auto *fwd = m_connection->keyboardForwarder();
-        if (fwd && fwd->isEnabled()) {
-            uint8_t petscii = KeyboardForwarder::qtKeyToPetscii(ke->key());
-            if (petscii != 0) {
-                fwd->sendKey(petscii);
-                return true;
-            }
+        if (!fwd || !fwd->isEnabled())
+            return QMainWindow::eventFilter(obj, event);
 
-            QString text = ke->text();
-            if (!text.isEmpty()) {
-                for (const QChar &ch : text) {
-                    fwd->handleCharacter(ch);
-                }
-                return true;
+        // Don't intercept keys when a text input widget has focus
+        auto *focusWidget = QApplication::focusWidget();
+        if (focusWidget) {
+            if (qobject_cast<QLineEdit *>(focusWidget) ||
+                qobject_cast<QPlainTextEdit *>(focusWidget) ||
+                qobject_cast<QTextEdit *>(focusWidget) ||
+                qobject_cast<QSpinBox *>(focusWidget) ||
+                qobject_cast<QComboBox *>(focusWidget)) {
+                return QMainWindow::eventFilter(obj, event);
             }
+            // Don't intercept if focus is in a different window (e.g. BASIC editor)
+            if (focusWidget->window() != this)
+                return QMainWindow::eventFilter(obj, event);
+        }
+
+        // Don't intercept Ctrl+ or Alt+ combos (app shortcuts)
+        auto *ke = static_cast<QKeyEvent *>(event);
+        if (ke->modifiers() & (Qt::ControlModifier | Qt::AltModifier))
+            return QMainWindow::eventFilter(obj, event);
+
+        // Forward to C64 keyboard buffer
+        uint8_t petscii = KeyboardForwarder::qtKeyToPetscii(ke->key());
+        if (petscii != 0) {
+            fwd->sendKey(petscii);
+            return true;
+        }
+
+        QString text = ke->text();
+        if (!text.isEmpty()) {
+            for (const QChar &ch : text) {
+                fwd->handleCharacter(ch);
+            }
+            return true;
         }
     }
     return QMainWindow::eventFilter(obj, event);
