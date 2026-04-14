@@ -32,6 +32,7 @@ add_executable(c64-ultimate-toolbox
     src/network/C64Connection.cpp
     src/network/DeviceScanner.cpp
     src/network/KeyboardForwarder.cpp
+    src/network/MenuController.cpp
 
     # UI
     src/ui/MainWindow.cpp

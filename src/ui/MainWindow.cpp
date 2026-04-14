@@ -5,6 +5,7 @@
 #include "ui/DisplayAudioPanel.h"
 #include "ui/DebugPanel.h"
 #include "ui/BasicEditorWindow.h"
+#include "network/MenuController.h"
 #include "video/CrtRenderer.h"
 #include "network/C64Connection.h"
 #include "network/KeyboardForwarder.h"
@@ -85,13 +86,16 @@ MainWindow::MainWindow(C64Connection *connection, QWidget *parent)
     connect(m_connection, &C64Connection::fpsUpdated,
             this, &MainWindow::onFpsUpdated);
 
-    // Menu button from keyboard strip
+    // Menu button from keyboard strip — toggle on-screen Ultimate menu
     connect(m_videoWidget, &VideoWidget::menuButtonClicked, this, [this]() {
         if (m_connection->apiClient())
             m_connection->machineAction(C64Connection::MachineAction::MenuButton);
     });
 
     restoreGeometryState();
+
+    // Install app-wide event filter to capture keys for keyboard forwarding
+    qApp->installEventFilter(this);
 }
 
 MainWindow::~MainWindow()
@@ -224,33 +228,30 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-    auto *fwd = m_connection->keyboardForwarder();
-    if (!fwd || !fwd->isEnabled()) {
-        QMainWindow::keyPressEvent(event);
-        return;
-    }
+    if (event->type() == QEvent::KeyPress) {
+        auto *ke = static_cast<QKeyEvent *>(event);
 
-    // Handle special keys
-    uint8_t petscii = KeyboardForwarder::qtKeyToPetscii(event->key());
-    if (petscii != 0) {
-        fwd->sendKey(petscii);
-        event->accept();
-        return;
-    }
+        // If keyboard forwarding is enabled, inject into C64 keyboard buffer
+        auto *fwd = m_connection->keyboardForwarder();
+        if (fwd && fwd->isEnabled()) {
+            uint8_t petscii = KeyboardForwarder::qtKeyToPetscii(ke->key());
+            if (petscii != 0) {
+                fwd->sendKey(petscii);
+                return true;
+            }
 
-    // Handle character keys
-    QString text = event->text();
-    if (!text.isEmpty()) {
-        for (const QChar &ch : text) {
-            fwd->handleCharacter(ch);
+            QString text = ke->text();
+            if (!text.isEmpty()) {
+                for (const QChar &ch : text) {
+                    fwd->handleCharacter(ch);
+                }
+                return true;
+            }
         }
-        event->accept();
-        return;
     }
-
-    QMainWindow::keyPressEvent(event);
+    return QMainWindow::eventFilter(obj, event);
 }
 
 void MainWindow::onConnectionChanged()

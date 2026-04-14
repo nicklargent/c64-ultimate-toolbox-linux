@@ -61,6 +61,7 @@ public:
     int framesPerSecond() const { return m_fps; }
     uint16_t videoPort() const { return m_videoPort; }
     uint16_t audioPort() const { return m_audioPort; }
+    QString deviceIp() const { return m_pendingIp; }
 
 signals:
     void connectionChanged();

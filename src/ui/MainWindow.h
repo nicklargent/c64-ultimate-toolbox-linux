@@ -12,6 +12,7 @@
 
 class C64Connection;
 class VideoWidget;
+class MenuController;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -24,9 +25,10 @@ public:
 
     void setMode(ConnectionMode mode);
 
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 protected:
     void closeEvent(QCloseEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
 
 signals:
     void windowClosed();
@@ -80,4 +82,6 @@ private:
 
     // Status
     QLabel *m_fpsLabel;
+    bool m_keyboardWasEnabled = false;
+    MenuController *m_menuController = nullptr;
 };

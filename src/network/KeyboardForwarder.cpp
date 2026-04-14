@@ -56,7 +56,6 @@ uint8_t KeyboardForwarder::charToPetscii(QChar ch)
 {
     char c = ch.toLatin1();
 
-    // Return/newline
     if (c == '\r' || c == '\n')
         return 0x0D;
 
@@ -112,60 +111,52 @@ void KeyboardForwarder::pollAndInject()
 
     m_sending = true;
 
-    // Read keyboard buffer counter at $00C6
+    // Step 1: Read keyboard buffer counter at $00C6
     m_client->readMemory(0x00C6, 1);
 
-    // We need to chain: read → check → write key → write counter
-    // Use a one-shot connection for the response
     auto conn = std::make_shared<QMetaObject::Connection>();
+    auto errConn = std::make_shared<QMetaObject::Connection>();
+
+    *errConn = connect(m_client, &C64ApiClient::requestFailed, this,
+        [this, conn, errConn](const QString &, const QString &) {
+            QObject::disconnect(*conn);
+            QObject::disconnect(*errConn);
+            m_sending = false;
+        });
+
     *conn = connect(m_client, &C64ApiClient::memoryDataReceived, this,
-        [this, conn](uint16_t address, const QByteArray &data) {
+        [this, conn, errConn](uint16_t address, const QByteArray &data) {
             if (address != 0x00C6)
                 return;
 
             QObject::disconnect(*conn);
+            QObject::disconnect(*errConn);
 
-            if (data.isEmpty()) {
+            if (data.isEmpty() || m_keyQueue.isEmpty()) {
                 m_sending = false;
                 return;
             }
 
             int count = static_cast<uint8_t>(data[0]);
-            if (count >= 10 || m_keyQueue.isEmpty()) {
+            if (count >= 10) {
                 m_sending = false;
                 return;
             }
 
+            // Step 2: Write PETSCII byte to buffer[$0277 + count]
+            // Step 3: Write incremented counter to $00C6
+            // Do both writes without waiting for responses — the device
+            // processes them in order on the HTTP connection
             uint8_t petscii = m_keyQueue.dequeue();
             uint16_t writeAddr = 0x0277 + count;
 
-            // Write the key byte
-            m_client->writeMemoryHex(writeAddr, QStringLiteral("%1").arg(petscii, 2, 16, QChar('0')).toUpper());
+            QString keyHex = QStringLiteral("%1").arg(petscii, 2, 16, QChar('0')).toUpper();
+            QString counterHex = QStringLiteral("%1").arg(count + 1, 2, 16, QChar('0')).toUpper();
 
-            // Increment counter
-            auto conn2 = std::make_shared<QMetaObject::Connection>();
-            *conn2 = connect(m_client, &C64ApiClient::requestSucceeded, this,
-                [this, conn2, count](const QString &op) {
-                    if (op != "writeMemoryHex")
-                        return;
-                    QObject::disconnect(*conn2);
+            m_client->writeMemoryHex(writeAddr, keyHex);
+            m_client->writeMemoryHex(0x00C6, counterHex);
 
-                    m_client->writeMemoryHex(0x00C6, QStringLiteral("%1").arg(count + 1, 2, 16, QChar('0')).toUpper());
-
-                    auto conn3 = std::make_shared<QMetaObject::Connection>();
-                    *conn3 = connect(m_client, &C64ApiClient::requestSucceeded, this,
-                        [this, conn3](const QString &) {
-                            QObject::disconnect(*conn3);
-                            m_sending = false;
-                        });
-                });
-        });
-
-    // Also handle failure
-    auto errConn = std::make_shared<QMetaObject::Connection>();
-    *errConn = connect(m_client, &C64ApiClient::requestFailed, this,
-        [this, errConn](const QString &, const QString &) {
-            QObject::disconnect(*errConn);
-            m_sending = false;
+            // Reset sending flag after a short delay to let the writes complete
+            QTimer::singleShot(20, this, [this]() { m_sending = false; });
         });
 }

@@ -13,7 +13,7 @@ VideoWidget::VideoWidget(C64Connection *connection, QWidget *parent)
     : QWidget(parent)
     , m_connection(connection)
 {
-    setStyleSheet("background-color: black;");
+    setStyleSheet("VideoWidget { background-color: black; }");
     setMinimumSize(200, 150);
 
     m_renderer = new CrtRenderer(this);
