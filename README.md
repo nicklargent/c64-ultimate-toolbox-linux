@@ -48,7 +48,7 @@ cmake --build build
 ./build/c64-ultimate-toolbox
 ```
 
-## Network Setup
+## How It Works
 
 The app communicates with the C64 Ultimate over multiple channels:
 
@@ -57,29 +57,7 @@ The app communicates with the C64 Ultimate over multiple channels:
 - **UDP port 11000** — Video stream (4-bit indexed color, assembled into RGBA frames)
 - **UDP port 11001** — Audio stream (16-bit stereo PCM at ~48kHz)
 
-### Firewall
-
-UDP ports 11000 and 11001 must be open for incoming traffic. On NixOS:
-
-```nix
-networking.firewall.allowedUDPPorts = [ 11000 11001 ];
-```
-
-### Streaming setup
-
-Video and audio streams must be configured on the device:
-
-1. On the C64 Ultimate, open the menu (press the cartridge button)
-2. Navigate to **F1 > Streams**
-3. Set **VIC Stream** to `<your-ip>:11000` and press Enter
-4. Set **Audio Stream** to `<your-ip>:11001` and press Enter
-5. Both should show a diamond icon indicating they are active
-
-### Troubleshooting
-
-- **"Cannot find MAC" error on the device** — The device's streaming stack may not be able to ARP-resolve your machine. This can happen if `rp_filter` is set to strict mode. Fix with: `sudo sysctl net.ipv4.conf.<interface>.rp_filter=0`. Sending a gratuitous ARP can also help: `arping -c 5 -A -I <interface> <your-ip>`.
-- **No video despite streams enabled** — Check your firewall allows incoming UDP on ports 11000/11001.
-- **Two network interfaces on the same subnet** — Can cause ARP confusion. Disable one or set `rp_filter=0`.
+Ensure that UDP ports 11000 and 11001 are open in your firewall for incoming traffic.
 
 ## Architecture
 
